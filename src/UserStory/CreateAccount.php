@@ -22,19 +22,39 @@ class CreateAccount
     {
         // Vérifier que les données sont présentes ( pas vide )
         // Si tel n'est pas le cas alors, lancer une exception
+        if(empty($pseudo)||empty($email)||empty($password)){
+            throw new \Exception("Tout les champs sont obligatoires");
+        }
 
         // Vérifier si l'email est valide
         // Si tel n'est pas le cas alors, lancer une exception
+        if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
+            throw new \Exception("L'adresse email n'est pas valide");
+        }
 
         // Vérifier si le pseudo est entre 2 et 50 caractères
         // Si tel n'est pas le cas alors, lancer une exception
+        if(strlen($pseudo) < 2 || strlen($pseudo) > 50){
+            throw new \Exception("La longueur du pseudo est invalide");
+        }
 
         // Vérifier si le mot de passe est sécurisé
         // Si tel n'est pas le cas alors, lancer une exception
         // Juste la vérification de la longueur du MDP >= 8
+        if(strlen($password)<8){
+            throw New \Exception("Le mot de passe doit faire au moins 8 caractères.");
+        }
 
         // Vérifier l'unicité de l'email
         // Si tel n'est pas le cas alors, lancer une exception
+        $sql="SELECT p.email FROM App\Entity\User p";
+        $query=$this->entityManager->createQuery($sql);
+        $emailBDDs=$query->getScalarResult();
+        foreach ($emailBDDs as $emailBDD) {
+            if ($emailBDD['email'] == $email) {
+                throw new \Exception("L'email choisis est déjà existant");
+            }
+        }
 
         // Insérer les données dans la base de donnée
         // 1. Hasher le mot de passe
@@ -50,7 +70,7 @@ class CreateAccount
         // 3. Persiste l'instance en utilisant l'entityManager
 
         $this->entityManager->persist($user);
-        $this->entityManager->fluch();
+        $this->entityManager->flush();
 
         // Envoie de l'email de confirmation
         echo "Un email de confirmation a été envoyé à l'utilisateur";
