@@ -20,6 +20,8 @@ class CreateAccount
     // Cette méthode permettra d'éxécuter la user story
     public function execute(string $pseudo, string $email, string $password): User
     {
+        $AccountRepository = $this->entityManager->getRepository(User::class);
+
         // Vérifier que les données sont présentes ( pas vide )
         // Si tel n'est pas le cas alors, lancer une exception
         if(empty($pseudo)||empty($email)||empty($password)){
@@ -47,14 +49,10 @@ class CreateAccount
 
         // Vérifier l'unicité de l'email
         // Si tel n'est pas le cas alors, lancer une exception
-        $sql="SELECT p.email FROM App\Entity\User p";
-        $query=$this->entityManager->createQuery($sql);
-        $emailBDDs=$query->getScalarResult();
-        foreach ($emailBDDs as $emailBDD) {
-            if ($emailBDD['email'] == $email) {
-                throw new \Exception("L'email choisis est déjà existant");
-            }
+        if ($AccountRepository->findOneBy(['email'=>$email])) {
+            throw new \Exception("L'email choisis est déjà existant");
         }
+
 
         // Insérer les données dans la base de donnée
         // 1. Hasher le mot de passe
